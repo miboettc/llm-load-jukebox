@@ -1,0 +1,50 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Python: enron_llm_processor.py",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/llm_load_jukebox/enron_llm_processor.py", 
+        "console": "integratedTerminal",
+        "justMyCode": true
+      },
+    {
+      "name": "Locust Headless",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "locust",
+      "args": [
+        "--headless",
+        "-u", "10",
+        "-r", "1",
+        "-f", "${workspaceFolder}/llm_load_jukebox/enron_locust.py",
+        "--host", "http://localhost:8000"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "GEVENT_SUPPORT": "True"
+      }
+    },
+    {
+      "name": "Locust Web UI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "locust",
+      "args": [
+        "-f", "${workspaceFolder}/llm_load_jukebox/enron_locust.py",
+        "--host", "http://localhost:8000"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "GEVENT_SUPPORT": "True"
+      }
+    }
+  ]
+  }
+
+
+  
+  

@@ -1,0 +1,10 @@
+
+pandas
+requests
+tqdm
+python-dotenv
+openai
+kaggle
+locust
+pyarrow
+fastparquet
