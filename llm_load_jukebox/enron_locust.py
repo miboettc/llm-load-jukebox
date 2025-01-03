@@ -110,7 +110,23 @@ class EnronUser(HttpUser):
         sender = email.get("From", "")
 
         question = generate_question(body, sender)
-        answer = ask_llm_ollama(body, question, client=self.client)
+        answer, metrics = ask_llm_ollama(body, question, client=self.client)
+
+        events.request.fire(
+            request_type="LLM",
+            name="E2E Latency",
+            response_time=metrics["End-to-End Latency"],
+            response_length=0,
+            exception=None
+        )
+        
+        events.request.fire(
+            request_type="LLM",
+            name="TTFT",
+            response_time=metrics["Time to First Token"],
+            response_length=0,
+            exception=None
+        )
 
         subject = email.get("Subject", "No Subject")
         print(f"[Consumer] Processed subject='{subject}'. Q='{question}' -> A='{answer}'")

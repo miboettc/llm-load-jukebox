@@ -3,6 +3,7 @@ import json
 import os
 import random
 import re
+import time
 from email.parser import Parser
 
 import openai
@@ -110,6 +111,8 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
             http_client = requests
         else:
             http_client = client
+
+        start_time = time.perf_counter()    
         
         response = http_client.post(
             url,
@@ -122,19 +125,29 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
         )
 
         response.raise_for_status()
+        first_token_time = None
 
         # Process the response stream
         full_response = ""
+        chunk_count = 0
         for chunk in response.iter_lines(decode_unicode=True):
             if chunk:  # Ignore empty chunks
                 try:
+                    # Record the time we receive the first token/chunk
+                    if first_token_time is None:
+                       first_token_time = time.perf_counter()
                     chunk_data = json.loads(chunk)  # Parse the JSON chunk
                     content = chunk_data.get("message", {}).get("content", "")
                     full_response += content
                 except json.JSONDecodeError:
                     print(f"Invalid chunk: {chunk}")
 
-        return full_response.strip()
+        end_time = time.perf_counter()
+
+        ttft_secs = (first_token_time - start_time) if first_token_time else None
+        e2e_latency_secs = end_time - start_time
+
+        return full_response.strip(),{"End-to-End Latency" : (int)(e2e_latency_secs * 1000), "Time to First Token" : (int)(ttft_secs * 1000)}
 
     except requests.exceptions.RequestException as e:
         return f"Error with the Ollama request: {e}"
