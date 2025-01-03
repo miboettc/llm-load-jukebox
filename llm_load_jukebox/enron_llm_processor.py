@@ -14,6 +14,7 @@ from fastparquet import write
 from kaggle.api.kaggle_api_extended import KaggleApi
 from questions import generate_question
 from tqdm import tqdm
+from transformers import AutoTokenizer
 
 # Load the OpenAI API key (if using a .env file)
 load_dotenv()
@@ -105,6 +106,16 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
         f"Question: {question}\n\n"
         "Please answer the question based on the content of the email."
     )
+
+    # Count number of tokens in prompt, assuming a llama model
+    # FIXME make the count dependent on the model parameter
+    # We are not using the meta llama tokenizer here, because it needs a login to huggingface
+    # We've got a tiktoken conversion error, thats why we teill Transformers to load the Python/slow version of the tokenizer,
+    # bypassing the fast “C++/Rust-based” pipeline that triggers the conversion error.
+    # FIXME use fast version
+    tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_7b", use_fast=False)
+    encoded = tokenizer(prompt)
+    input_tokens = len(encoded["input_ids"])
     
     try:
         if client is None:
@@ -139,6 +150,7 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
                     chunk_data = json.loads(chunk)  # Parse the JSON chunk
                     content = chunk_data.get("message", {}).get("content", "")
                     full_response += content
+                    chunk_count += 1
                 except json.JSONDecodeError:
                     print(f"Invalid chunk: {chunk}")
 
@@ -147,7 +159,7 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
         ttft_secs = (first_token_time - start_time) if first_token_time else None
         e2e_latency_secs = end_time - start_time
 
-        return full_response.strip(),{"End-to-End Latency" : (int)(e2e_latency_secs * 1000), "Time to First Token" : (int)(ttft_secs * 1000)}
+        return full_response.strip(),{"End-to-End Latency" : (int)(e2e_latency_secs * 1000), "Time to First Token" : (int)(ttft_secs * 1000), "Output Tokens" : chunk_count, "Input Tokens" : input_tokens}
 
     except requests.exceptions.RequestException as e:
         return f"Error with the Ollama request: {e}"

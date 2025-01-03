@@ -116,7 +116,7 @@ class EnronUser(HttpUser):
             request_type="LLM",
             name="E2E Latency",
             response_time=metrics["End-to-End Latency"],
-            response_length=0,
+            response_length=metrics["Output Tokens"],
             exception=None
         )
         
@@ -124,7 +124,7 @@ class EnronUser(HttpUser):
             request_type="LLM",
             name="TTFT",
             response_time=metrics["Time to First Token"],
-            response_length=0,
+            response_length=metrics["Input Tokens"],
             exception=None
         )
 

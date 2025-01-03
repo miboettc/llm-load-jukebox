@@ -8,3 +8,8 @@ kaggle
 locust
 pyarrow
 fastparquet
+transformers
+tiktoken
+blobfile
+protobuf
+sentencepiece
