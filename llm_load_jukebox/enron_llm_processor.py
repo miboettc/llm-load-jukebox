@@ -140,7 +140,6 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
 
         # Process the response stream
         full_response = ""
-        chunk_count = 0
         for chunk in response.iter_lines(decode_unicode=True):
             if chunk:  # Ignore empty chunks
                 try:
@@ -150,16 +149,25 @@ def ask_llm_ollama(email_content, question, model="llama3.2", url="http://localh
                     chunk_data = json.loads(chunk)  # Parse the JSON chunk
                     content = chunk_data.get("message", {}).get("content", "")
                     full_response += content
-                    chunk_count += 1
                 except json.JSONDecodeError:
                     print(f"Invalid chunk: {chunk}")
 
         end_time = time.perf_counter()
 
+        # Get number of tokens in output, assuming a llama model
+        # FIXME make the count dependent on the model parameter
+        # We are not using the meta llama tokenizer here, because it needs a login to huggingface
+        # We've got a tiktoken conversion error, thats why we teill Transformers to load the Python/slow version of the tokenizer,
+        # bypassing the fast “C++/Rust-based” pipeline that triggers the conversion error.
+        # FIXME use fast version
+        tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_7b", use_fast=False)
+        encoded = tokenizer(full_response)
+        output_tokens = len(encoded["input_ids"])
+
         ttft_secs = (first_token_time - start_time) if first_token_time else None
         e2e_latency_secs = end_time - start_time
 
-        return full_response.strip(),{"End-to-End Latency" : (int)(e2e_latency_secs * 1000), "Time to First Token" : (int)(ttft_secs * 1000), "Output Tokens" : chunk_count, "Input Tokens" : input_tokens}
+        return full_response.strip(),{"End-to-End Latency" : (int)(e2e_latency_secs * 1000), "Time to First Token" : (int)(ttft_secs * 1000), "Output Tokens" : output_tokens, "Input Tokens" : input_tokens}
 
     except requests.exceptions.RequestException as e:
         return f"Error with the Ollama request: {e}"
