@@ -124,7 +124,7 @@ Hence, the **Enron** dataset stands out for **realism** (corporate language and 
 
 ## Results in the Dashboard
 
-When you run tests, Locust’s (or “Lucas”) **dashboard** can display **two custom lines**:  
+When you run tests, Locust’s **dashboard** can display **two custom lines**:  
 1. **Time to First Token**:  
    - Listed as a separate request/endpoint name in the results table.  
    - The **request size** column reflects the **number of input tokens** (from the selected Enron email).  
@@ -132,4 +132,11 @@ When you run tests, Locust’s (or “Lucas”) **dashboard** can display **two 
    - Listed as another line in the same or separate results table.  
    - The **request size** column here indicates the **number of output tokens** returned by the LLM.
 
-By splitting these metrics, you can easily see how quickly the LLM started streaming back tokens (TTFT) vs. how long it took to complete the entire response (E2E). The corresponding “size” columns help correlate **latency** with **token volume**—giving deeper insight into your m
+By splitting these metrics, you can easily see how quickly the LLM started streaming back tokens (TTFT) vs. how long it took to complete the entire response (E2E). The corresponding “size” columns help correlate **latency** with **token volume**—giving deeper insight into your model’s scaling behavior.
+
+---
+
+
+## Limitation
+
+- Currently only works with ollama deployments, but the code can easily be extended to performance test other API's 
