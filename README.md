@@ -10,6 +10,7 @@ This repository provides a framework for **realistic load tests** of Large Langu
 5. [Why Realistic Load Tests?](#why-realistic-load-tests)  
 6. [Comparisons to Other Approaches](#comparisons-to-other-approaches)  
 7. [Results in the Dashboard](#results-in-the-dashboard)
+8. [Limitations](#limitations)
 
 ---
 
@@ -137,6 +138,8 @@ By splitting these metrics, you can easily see how quickly the LLM started strea
 ---
 
 
-## Limitation
+## Limitations
 
 - Currently only works with ollama deployments, but the code can easily be extended to performance test other API's 
+
+---
