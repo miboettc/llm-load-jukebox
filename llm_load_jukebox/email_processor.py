@@ -26,7 +26,8 @@ class EmailProcessor:
       interacts with the LLM, and returns the response and metrics.
     - process_batch(dataset_path, output_file, show_progress): Processes a batch of emails 
       from a dataset, generates responses and metrics, and saves the results to a CSV file.
-    """    
+    """
+        
     def __init__(self, api: LLMInterface, cache_dir: str):
         self.api = api
         self.cache_dir = cache_dir

@@ -207,6 +207,9 @@ def measure_metrics(api: LLMInterface, email_content: str, question: str):
 
     token_count = api.get_token_count(response)
 
+    # Convert Measurements from float (taken by time.perf_counter()) and thus measured in seconds to ms as int
+    time_to_first_token = int(time_to_first_token * 1000)
+    time_to_last_token = int(time_to_last_token * 1000)
     return response, {
         "input_tokens" : in_tokens,
         "output_tokens": token_count,
