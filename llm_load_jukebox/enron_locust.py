@@ -1,18 +1,80 @@
 import os
 import queue
 import threading
+import time
 
 import fastparquet
 from dotenv import load_dotenv
-from enron_llm_processor import (
-    PARQUET_DATASET_PATH,
-    ask_llm_ollama,
-    download_enron_dataset,
-)
+from enron_llm_processor import PARQUET_DATASET_PATH, download_enron_dataset
+from interfaces import LLMInterface, OllamaAPI, OpenAIAPI
 from locust import HttpUser, between, events, task
 from questions import generate_question
 
 MAX_QUEUE_SIZE = 1000  # Bounded queue to avoid excess buffering
+
+def measure_metrics(api: LLMInterface, email_content: str, question: str):
+    """
+    Measures various metrics for API performance:
+    - Time-to-First-Token (TTFT)
+    - Time-to-Last-Token (TTLT)
+    - Output token count
+    - Input token count
+    """
+    token_count = 0
+    start_time = time.perf_counter()
+    time_to_first_token = None
+    time_to_last_token = None
+    in_tokens = None
+
+    # Stream the response
+    response = ""
+    for token, timestamp, input_tokens in api.stream_request(email_content, question):
+        if not in_tokens:
+            in_tokens = input_tokens
+            time_to_first_token = timestamp
+        response += token    
+
+    time_to_last_token = time.perf_counter() - start_time 
+    
+    token_count += api.get_token_count(response)
+
+    
+    return response, {
+        "input_tokens" : in_tokens,
+        "output_tokens": token_count,
+        "time_to_first_token": time_to_first_token,
+        "time_to_last_token": time_to_last_token
+    }
+
+import pandas as pd
+
+
+def process_emails(api: LLMInterface, dataset_path: str, results_path: str):
+    """
+    Processes emails from the dataset and collects performance metrics.
+    """
+    # Load the dataset
+    emails = pd.read_csv(dataset_path)
+    results = []
+
+    for _, email in emails.iterrows():
+        email_content = email.get("MESSAGE", "")
+        question = f"What is the main content of this email with the subject '{email.get('Subject', '')}'?"
+
+        # Measure metrics
+        metrics = measure_metrics(api, email_content, question)
+        metrics["email_id"] = email.get("Message-ID")
+        metrics["question"] = question
+        results.append(metrics)
+
+    # Save results
+    results_df = pd.DataFrame(results)
+    results_df.to_csv(results_path, index=False)
+    print(f"Results saved to '{results_path}'.")
+
+
+
+
 
 def producer_thread(parquet_path, shared_queue, stop_event):
     """
@@ -59,6 +121,17 @@ def on_test_start(environment, **kwargs):
 
     load_dotenv()
 
+    # Configurable API selection
+    environment.api_key = os.getenv("OPENAI_API_KEY")
+    environment.model = os.getenv("MODEL", "llama3.2")
+    environment.host = os.getenv("HOST", "http://localhost:11434")
+
+    # Configurable API selection
+    environment.api_name = os.getenv("API_NAME", "ollama")
+    if environment.api_name != "openai" and environment.api_name != "ollama":
+        raise ValueError(f"Unknown API: {environment.api_name}")
+
+
     download_enron_dataset()
 
     # Bounded queue
@@ -94,6 +167,21 @@ def on_test_stop(environment, **kwargs):
 class EnronUser(HttpUser):
     wait_time = between(1, 3)  # Wait time between tasks (in seconds)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not self.environment.host:
+            raise ValueError("No Hostname provided. Start Locust with the -host=http://your-host")
+
+        # Select the API
+        self.environment.api = None
+        if self.environment.api_name == "openai":
+            self.environment.api = OpenAIAPI(model=self.environment.model, host=self.environment.host, client=self.client)
+        elif self.environment.api_name == "ollama":
+            self.environment.api = OllamaAPI(model=self.environment.model, host=self.environment.host, client=self.client)
+        else:
+            raise ValueError(f"Unknown API: {self.environment.api_name}")
+
     @task
     def process_email_task(self):
         """
@@ -110,21 +198,22 @@ class EnronUser(HttpUser):
         sender = email.get("From", "")
 
         question = generate_question(body, sender)
-        answer, metrics = ask_llm_ollama(body, question, client=self.client)
+        answer, metrics = measure_metrics(self.environment.api, body, question)
+         
 
         events.request.fire(
             request_type="LLM",
             name="E2E Latency",
-            response_time=metrics["End-to-End Latency"],
-            response_length=metrics["Output Tokens"],
+            response_time=metrics["time_to_last_token"],
+            response_length=metrics["output_tokens"],
             exception=None
         )
         
         events.request.fire(
             request_type="LLM",
             name="TTFT",
-            response_time=metrics["Time to First Token"],
-            response_length=metrics["Input Tokens"],
+            response_time=metrics["time_to_first_token"],
+            response_length=metrics["input_tokens"],
             exception=None
         )
 

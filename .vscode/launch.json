@@ -19,12 +19,13 @@
         "-u", "10",
         "-r", "1",
         "-f", "${workspaceFolder}/llm_load_jukebox/enron_locust.py",
-        "--host", "http://localhost:8000"
+        "--host", "http://localhost:11434"
       ],
       "console": "integratedTerminal",
       "justMyCode": true,
       "env": {
-        "GEVENT_SUPPORT": "True"
+        "GEVENT_SUPPORT": "True",
+        "API_NAME": "ollama"
       }
     },
     {
@@ -34,12 +35,13 @@
       "module": "locust",
       "args": [
         "-f", "${workspaceFolder}/llm_load_jukebox/enron_locust.py",
-        "--host", "http://localhost:8000"
+        "--host", "http://localhost:11434"
       ],
       "console": "integratedTerminal",
       "justMyCode": true,
       "env": {
-        "GEVENT_SUPPORT": "True"
+        "GEVENT_SUPPORT": "True",
+        "API_NAME": "ollama"
       }
     }
   ]
