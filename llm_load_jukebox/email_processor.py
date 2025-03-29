@@ -8,6 +8,25 @@ from tqdm import tqdm
 
 
 class EmailProcessor:
+    """
+    The EmailProcessor class is responsible for processing emails from a dataset
+    and interacting with a language model (LLM) to generate responses and collect metrics.
+
+    Key Responsibilities:
+    - Process a single email and generate a response along with performance metrics.
+    - Process a batch of emails from a dataset and save the results to a CSV file.
+    - Interact with an LLM through the provided API interface to generate responses.
+
+    Attributes:
+    - api (LLMInterface): The API interface for interacting with the language model.
+    - cache_dir (str): The directory where intermediate or output files are stored.
+
+    Methods:
+    - process_single_email(email): Processes a single email, generates a question, 
+      interacts with the LLM, and returns the response and metrics.
+    - process_batch(dataset_path, output_file, show_progress): Processes a batch of emails 
+      from a dataset, generates responses and metrics, and saves the results to a CSV file.
+    """    
     def __init__(self, api: LLMInterface, cache_dir: str):
         self.api = api
         self.cache_dir = cache_dir
