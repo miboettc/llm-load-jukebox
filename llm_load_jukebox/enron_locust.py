@@ -6,45 +6,12 @@ import time
 import fastparquet
 from dotenv import load_dotenv
 from enron_llm_processor import PARQUET_DATASET_PATH, download_enron_dataset
-from interfaces import LLMInterface, OllamaAPI, OpenAIAPI
+from interfaces import LLMInterface, OllamaAPI, OpenAIAPI, measure_metrics
 from locust import HttpUser, between, events, task
 from questions import generate_question
 
 MAX_QUEUE_SIZE = 1000  # Bounded queue to avoid excess buffering
 
-def measure_metrics(api: LLMInterface, email_content: str, question: str):
-    """
-    Measures various metrics for API performance:
-    - Time-to-First-Token (TTFT)
-    - Time-to-Last-Token (TTLT)
-    - Output token count
-    - Input token count
-    """
-    token_count = 0
-    start_time = time.perf_counter()
-    time_to_first_token = None
-    time_to_last_token = None
-    in_tokens = None
-
-    # Stream the response
-    response = ""
-    for token, timestamp, input_tokens in api.stream_request(email_content, question):
-        if not in_tokens:
-            in_tokens = input_tokens
-            time_to_first_token = timestamp
-        response += token    
-
-    time_to_last_token = time.perf_counter() - start_time 
-    
-    token_count += api.get_token_count(response)
-
-    
-    return response, {
-        "input_tokens" : in_tokens,
-        "output_tokens": token_count,
-        "time_to_first_token": time_to_first_token,
-        "time_to_last_token": time_to_last_token
-    }
 
 import pandas as pd
 
@@ -62,7 +29,7 @@ def process_emails(api: LLMInterface, dataset_path: str, results_path: str):
         question = f"What is the main content of this email with the subject '{email.get('Subject', '')}'?"
 
         # Measure metrics
-        metrics = measure_metrics(api, email_content, question)
+        results, metrics = measure_metrics(api, email_content, question)
         metrics["email_id"] = email.get("Message-ID")
         metrics["question"] = question
         results.append(metrics)
