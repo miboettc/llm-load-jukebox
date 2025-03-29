@@ -140,6 +140,7 @@ By splitting these metrics, you can easily see how quickly the LLM started strea
 
 ## Limitations
 
-- Currently only works with ollama deployments, but the code can easily be extended to performance test other API's 
+- Currently only works with ollama deployments, but the code can easily be extended to performance test other API's. Simply subclass the class LLMInterface
+- The OpenAI implementation of LLMInterface still is work in progress and not tested yet
 
 ---
