@@ -130,6 +130,7 @@ class OllamaAPI(LLMInterface):
         # FIXME use fast version
         self.tokenizer = AutoTokenizer.from_pretrained("openlm-research/open_llama_7b", use_fast=False)
         self.client = client
+        self.host = host
 
     def stream_request(self, email_content: str, question: str) -> Generator[Tuple[str, float, float, int], None, None]:
         """
@@ -152,14 +153,14 @@ class OllamaAPI(LLMInterface):
             start_time = time.perf_counter()    
             
             response = http_client.post(
-                "/api/generate",
+                f"{self.host}/api/generate",
                 json={
-                    "model": self.model,
-                    "prompt": prompt  # 
+                   "model": self.model,
+                    "prompt": prompt
                 },
                 headers={"Content-Type": "application/json"},
                 stream=True
-            )
+        )
 
             response.raise_for_status()
             for chunk in response.iter_lines(decode_unicode=True):

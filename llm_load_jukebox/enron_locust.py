@@ -1,12 +1,12 @@
 import os
 import queue
 import threading
-import time
 
 import fastparquet
+from config import CACHE_DIR, KAGGLE_DATASET, OUTPUT_FILE, PARQUET_DATASET_PATH
 from dotenv import load_dotenv
-from enron_llm_processor import PARQUET_DATASET_PATH, download_enron_dataset
-from interfaces import LLMInterface, OllamaAPI, OpenAIAPI, measure_metrics
+from enron_preprocessor import download_enron_dataset
+from interfaces import OllamaAPI, OpenAIAPI, measure_metrics
 from locust import HttpUser, between, events, task
 from questions import generate_question
 
@@ -14,33 +14,6 @@ MAX_QUEUE_SIZE = 1000  # Bounded queue to avoid excess buffering
 
 
 import pandas as pd
-
-
-def process_emails(api: LLMInterface, dataset_path: str, results_path: str):
-    """
-    Processes emails from the dataset and collects performance metrics.
-    """
-    # Load the dataset
-    emails = pd.read_csv(dataset_path)
-    results = []
-
-    for _, email in emails.iterrows():
-        email_content = email.get("MESSAGE", "")
-        question = f"What is the main content of this email with the subject '{email.get('Subject', '')}'?"
-
-        # Measure metrics
-        results, metrics = measure_metrics(api, email_content, question)
-        metrics["email_id"] = email.get("Message-ID")
-        metrics["question"] = question
-        results.append(metrics)
-
-    # Save results
-    results_df = pd.DataFrame(results)
-    results_df.to_csv(results_path, index=False)
-    print(f"Results saved to '{results_path}'.")
-
-
-
 
 
 def producer_thread(parquet_path, shared_queue, stop_event):
@@ -99,7 +72,7 @@ def on_test_start(environment, **kwargs):
         raise ValueError(f"Unknown API: {environment.api_name}")
 
 
-    download_enron_dataset()
+    download_enron_dataset(CACHE_DIR, KAGGLE_DATASET, PARQUET_DATASET_PATH)
 
     # Bounded queue
     environment.shared_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
