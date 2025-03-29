@@ -5,7 +5,7 @@
         "name": "Python: enron_llm_processor.py",
         "type": "debugpy",
         "request": "launch",
-        "program": "${workspaceFolder}/llm_load_jukebox/enron_llm_processor.py", 
+        "program": "${workspaceFolder}/llm_load_jukebox/enron_main.py", 
         "console": "integratedTerminal",
         "justMyCode": true
       },

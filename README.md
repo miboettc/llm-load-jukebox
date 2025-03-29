@@ -87,7 +87,7 @@ Open [http://localhost:8089](http://localhost:8089) in your browser to view the 
 For easy debugging, we provide a [**launch.json**](.vscode/launch.json) file. It defines:
 - **Locust Headless** mode, mirroring the `locust --headless ...` command  
 - **Locust Web UI** mode  
-- **Python: enron_llm_processor.py** for debugging local scripts  
+- **Python: enron_main.py** for running most of the code without locust (e.g. for debugging) 
 
 
 ---
