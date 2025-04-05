@@ -19,12 +19,13 @@ python-dotenv = "==1.1.0"
 requests = "==2.32.3"
 tiktoken = "==0.8.0"
 tqdm = "==4.67.1"
-transformers = "==4.47.1"
-sentencepiece = "^0.2.0"
+transformers = {version = "==4.47.1", extras = ["sentencepiece"]}
+
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^2.1.2"
 pytest = "^8.3.5"
+pytest-mock = "^3.11.1"
 deptry = "^0.23.0"
 
 [tool.deptry]
@@ -33,8 +34,11 @@ ignore = [
     "questions",
     "config",
     "enron_preprocessor",
-    "email_processor"
+    "email_processor",
+    "email_processor",
+    "llm_load_jukebox" 
 ]
+package_module_name_map = { "pytest-mock" = "pytest_mock" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

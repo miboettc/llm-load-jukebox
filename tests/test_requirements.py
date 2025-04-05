@@ -4,7 +4,7 @@ import subprocess
 import pytest
 
 # Pfad zum Projektverzeichnis
-PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../llm_load_jukebox"))
 
 def run_deptry(project_dir):
     """
