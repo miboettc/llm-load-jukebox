@@ -1,0 +1,41 @@
+[project]
+name = "llm-load-jukebox"
+version = "0.1.0"
+description = "LLM Load Testing with Enron Emails"
+authors = [
+    {name = "Mirko Boettcher"}
+]
+license = {text = "LGPL 2.1"}
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+
+[tool.poetry.dependencies]
+fastparquet = "==2024.11.0"
+kaggle = "==1.6.17"
+locust = ">=2.33.2,<3.0.0"
+openai = "==1.70.0"
+pandas = "==2.2.3"
+python-dotenv = "==1.1.0"
+requests = "==2.32.3"
+tiktoken = "==0.8.0"
+tqdm = "==4.67.1"
+transformers = "==4.47.1"
+sentencepiece = "^0.2.0"
+
+[tool.poetry.group.dev.dependencies]
+poetry = "^2.1.2"
+pytest = "^8.3.5"
+deptry = "^0.23.0"
+
+[tool.deptry]
+ignore = [
+    "interfaces",
+    "questions",
+    "config",
+    "enron_preprocessor",
+    "email_processor"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
