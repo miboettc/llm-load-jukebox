@@ -33,10 +33,15 @@ By using **true corporate communication** samples, we capture complexities such 
    cd llm-load-jukebox
    ```
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+2. **Install dependencies using Poetry**:
+   - Ensure Poetry is installed. If not, install it with:
+     ```bash
+     pip install poetry
+     ```
+   - Install the dependencies:
+     ```bash
+     poetry install
+     ```
 
 3. **Enron Dataset from Kaggle**:  
    The Enron dataset is downloaded from [Kaggle](https://www.kaggle.com/). You need:
